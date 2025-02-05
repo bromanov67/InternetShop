@@ -1,4 +1,5 @@
 ﻿using InternetShop.Application.User;
+using InternetShop.Database.Models;
 using InternetShop.Domain;
 using System;
 using System.Collections.Generic;
@@ -18,8 +19,15 @@ namespace InternetShop.Database
         }
         public async Task CreateAsync(User user, CancellationToken cancellationToken)
         {
-            
-        }
+            var userEntity = new UserEntity
+            {
+                Firstname = user.Firstname,
+                Lastname = user.Lastname,
+                Email = user.Email
 
+            };
+            _dbContext.Set<UserEntity>().Add(userEntity);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
     }
 }
