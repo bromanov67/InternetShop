@@ -1,6 +1,8 @@
-﻿using InternetShop.Application.User;
+﻿using FluentResults;
+using InternetShop.Application.User;
 using InternetShop.Database.Models;
 using InternetShop.Domain;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +30,20 @@ namespace InternetShop.Database
             };
             _dbContext.Set<UserEntity>().Add(userEntity);
             await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task<Result<List<User>>> GetAllAsync(CancellationToken cancellationToken)
+        {
+            var userEntities = await _dbContext.Set<UserEntity>().ToListAsync();
+            var allUsers =  userEntities.Select(u => new User
+            {
+                Id = u.Id,
+                Firstname = u.Firstname,
+                Lastname = u.Lastname,
+                Email = u.Email
+            }).ToList();
+
+            return Result.Ok(allUsers);
         }
     }
 }
