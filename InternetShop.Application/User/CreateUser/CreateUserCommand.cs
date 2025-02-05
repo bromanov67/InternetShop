@@ -1,8 +1,9 @@
 ﻿using FluentResults;
 using MediatR;
 using System.Text.Json.Serialization;
+using System.Windows.Input;
 
-namespace InternetShop.Application.User
+namespace InternetShop.Application.User.CreateUser
 {
     public record CreateUserCommand : IRequest<Result<int>>
     {

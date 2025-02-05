@@ -3,7 +3,7 @@ using InternetShop.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace InternetShop.Application.User
+namespace InternetShop.Application.User.CreateUser
 {
     public class CreateUserHandler : IRequestHandler<CreateUserCommand, Result<int>>
     {
