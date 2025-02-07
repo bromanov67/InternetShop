@@ -1,4 +1,5 @@
 ﻿using FluentResults;
+using FluentValidation;
 using InternetShop.Application.User;
 using InternetShop.Application.User.CreateUser;
 using InternetShop.Application.User.GetAllUsers;
@@ -7,6 +8,7 @@ using InternetShop.Application.User.Registration;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace InternetShop.Controllers
@@ -17,17 +19,31 @@ namespace InternetShop.Controllers
     {
         private readonly IUserRepository _userRepository;
         private readonly IMediator _mediator;
-        public UserController(IUserRepository userRepository, IMediator mediator)
+        private readonly IValidator<LoginQuery> _loginValidator;
+        public UserController(IUserRepository userRepository, IMediator mediator, IValidator<LoginQuery> loginValidator)
         {
             _mediator = mediator;
             _userRepository = userRepository;
+            _loginValidator = loginValidator;
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult> LoginAsync(LoginQuery query)
+        public async Task<ActionResult> LoginAsync(LoginQuery query, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(query);
-            return Ok(result);
+            var validateResult = await _loginValidator.ValidateAsync(query, cancellationToken);
+            if (!validateResult.IsValid)
+                return BadRequest(new { errors = validateResult.Errors.Select(x => x.ErrorMessage) });
+
+            try
+            {
+                var result = await _mediator.Send(query);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { errors = ex.ToString() });
+            }
+
         }
 
         [HttpPost("registration")]

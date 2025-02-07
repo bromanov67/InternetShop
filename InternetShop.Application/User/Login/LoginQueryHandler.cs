@@ -19,7 +19,7 @@ namespace InternetShop.Application.User.Login
             _userRepository = userRepository;
             _tokenService = tokenService;
             _passwordHasher = passwordHasher;
-        }
+        }  
 
         public async Task<Result<string>> Handle(LoginQuery request, CancellationToken cancellationToken)
         {
@@ -34,7 +34,7 @@ namespace InternetShop.Application.User.Login
             {
                 return Result.Fail("Неверный пароль.");
             }
-       
+            // 3. Создать токен
             var token = _tokenService.GenerateJwtToken(user);
             return Result.Ok(token);
         }

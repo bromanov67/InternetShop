@@ -28,14 +28,14 @@ namespace InternetShop.Database
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
             var secretKey = _configuration["Jwt:Key"];
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(_configuration.GetValue<int>("Jwt:ExpiryMinutes")),
+                expires: DateTime.UtcNow.AddDays(_configuration.GetValue<int>("Jwt:ExpiryDays")),
                 signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
