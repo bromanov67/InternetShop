@@ -3,11 +3,7 @@ using InternetShop.Application.User;
 using InternetShop.Database.Models;
 using InternetShop.Domain;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace InternetShop.Database
 {
@@ -44,6 +40,43 @@ namespace InternetShop.Database
             }).ToList();
 
             return Result.Ok(allUsers);
+        }
+
+        public async Task AddAsync(User user)
+        {
+
+            var userEntity = new UserEntity
+            {
+                Id = user.Id,
+                Email = user.Email,
+                Firstname = user.Firstname,
+                Lastname = user.Lastname,
+                PasswordHash = user.PasswordHash
+            };
+
+            await _dbContext.Users.AddAsync(userEntity);
+            await _dbContext.SaveChangesAsync();
+        }
+
+
+        public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken)
+        {
+            var userEntity = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+
+            if (userEntity == null)
+            {
+                return null;
+            }
+
+            return new User
+            {
+                Id = userEntity.Id,
+                Email = userEntity.Email,
+                Firstname = userEntity.Firstname,
+                Lastname = userEntity.Lastname,
+                PasswordHash = userEntity.PasswordHash
+            };
         }
     }
 }
