@@ -32,7 +32,7 @@ namespace InternetShop.Application.User.Registration
 
             user.PasswordHash = _passwordHasher.HashPassword(user, command.Password);
 
-            await _userRepository.AddAsync(user); // Передаем сущность
+            await _userRepository.AddAsync(user, cancellationToken); // Передаем сущность
 
             return new OkResult();
         }

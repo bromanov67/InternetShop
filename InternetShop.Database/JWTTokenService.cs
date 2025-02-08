@@ -20,7 +20,7 @@ namespace InternetShop.Database
             _configuration = configuration;
         }
 
-        public string GenerateJwtToken(User user)
+        public string GenerateJwtToken(User user, CancellationToken cancellationToken)
         {
             var claims = new[]
             {

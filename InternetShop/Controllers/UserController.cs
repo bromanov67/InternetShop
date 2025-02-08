@@ -47,7 +47,7 @@ namespace InternetShop.Controllers
         }
 
         [HttpPost("registration")]
-        public async Task<IActionResult> Register([FromBody] RegistrationCommand command)
+        public async Task<IActionResult> RegisterAsync([FromBody] RegistrationCommand command)
         {
             return await _mediator.Send(command);
         }

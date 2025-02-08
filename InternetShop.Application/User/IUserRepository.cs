@@ -11,6 +11,6 @@ namespace InternetShop.Application.User
 
         public Task<Domain.User> GetByEmailAsync(string email, CancellationToken cancellationToken);
 
-        public Task AddAsync(Domain.User user);
+        public Task AddAsync(Domain.User user, CancellationToken cancellationToken);
     }
 }

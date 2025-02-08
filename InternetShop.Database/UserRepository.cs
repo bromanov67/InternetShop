@@ -42,7 +42,7 @@ namespace InternetShop.Database
             return Result.Ok(allUsers);
         }
 
-        public async Task AddAsync(User user)
+        public async Task AddAsync(User user, CancellationToken cancellationToken)
         {
 
             var userEntity = new UserEntity
@@ -51,11 +51,11 @@ namespace InternetShop.Database
                 Email = user.Email,
                 Firstname = user.Firstname,
                 Lastname = user.Lastname,
-                PasswordHash = user.PasswordHash
+                PasswordHash = user.PasswordHash!
             };
 
-            await _dbContext.Users.AddAsync(userEntity);
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.Users.AddAsync(userEntity, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
 

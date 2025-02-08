@@ -35,7 +35,7 @@ namespace InternetShop.Application.User.Login
                 return Result.Fail("Неверный пароль.");
             }
             // 3. Создать токен
-            var token = _tokenService.GenerateJwtToken(user);
+            var token = _tokenService.GenerateJwtToken(user, cancellationToken);
             return Result.Ok(token);
         }
 
