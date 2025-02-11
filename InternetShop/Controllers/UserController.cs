@@ -36,7 +36,7 @@ namespace InternetShop.Controllers
 
             try
             {
-                var result = await _mediator.Send(query);
+                var result = await _mediator.Send(query, cancellationToken);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -47,9 +47,9 @@ namespace InternetShop.Controllers
         }
 
         [HttpPost("registration")]
-        public async Task<IActionResult> RegisterAsync([FromBody] RegistrationCommand command)
+        public async Task<IActionResult> RegisterAsync([FromBody] RegistrationCommand command, CancellationToken cancellationToken)
         {
-            return await _mediator.Send(command);
+            return await _mediator.Send(command, cancellationToken);
         }
         [HttpPost]
         public async Task<IActionResult> CreateUserAsync(CreateUserCommand command, CancellationToken cancellationToken)
