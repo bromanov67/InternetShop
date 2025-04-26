@@ -1,15 +1,35 @@
-using InternetShop.Application.User;
-using InternetShop.Application.User.Login;
+using FluentValidation;
+using InternetShop.Application.BusinessLogic.Cart;
+using InternetShop.Application.BusinessLogic.Product;
+using InternetShop.Application.BusinessLogic.User;
+using InternetShop.Application.BusinessLogic.User.Login;
+using InternetShop.Application.BusinessLogic.User.Registration;
 using InternetShop.Database;
+using InternetShop.Database.Models.Authentication;
 using InternetShop.Domain;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using FluentValidation;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Driver;
+using StackExchange.Redis;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
+
 
 // Регистрация Identity
 builder.Services.AddIdentity<User, IdentityRole>(options =>
@@ -22,11 +42,14 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
     options.Password.RequiredUniqueChars = 1;
     options.User.RequireUniqueEmail = true;
 })
-.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddEntityFrameworkStores<UserDbContext>()
 .AddDefaultTokenProviders();
 
 // Конфигурация JWT
-var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]!);
+var jwtKey = builder.Configuration["Jwt:Key"] ??
+    throw new ArgumentNullException("Jwt:Key is not configured");
+var key = Encoding.ASCII.GetBytes(jwtKey);
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -45,18 +68,54 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// 4. Регистрация контекста БД
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("InternetShopDbContext")));
+//Конфигурация MongoDB
+BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 
-builder.Services.AddMediatR(config => config.RegisterServicesFromAssemblies(AppDomain.CurrentDomain.GetAssemblies()));
+var mongoConfig = builder.Configuration.GetSection("MongoDb");
+var mongoConnectionString = mongoConfig["ConnectionUrl"] ??
+    throw new ArgumentNullException("MongoDb:ConnectionUrl is not configured");
+var mongoDatabaseName = mongoConfig["DatabaseName"] ??
+    throw new ArgumentNullException("MongoDb:DatabaseName is not configured");
 
+var mongoClient = new MongoClient(mongoConnectionString);
+var mongoDatabase = mongoClient.GetDatabase(mongoDatabaseName);
+builder.Services.AddSingleton<IMongoDatabase>(mongoDatabase);
 
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+// Конфигурация Redis
+var redisConnectionString = builder.Configuration["Redis:ConnectionString"] ??
+    throw new ArgumentNullException("Redis:ConnectionString is not configured");
+var redisInstanceName = builder.Configuration["Redis:InstanceName"] ?? "DefaultInstance";
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+    ConnectionMultiplexer.Connect(redisConnectionString));
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = redisConnectionString;
+    options.InstanceName = redisInstanceName;
+});
+
+// Регистрация контекста БД
+var pgConnectionString = builder.Configuration.GetConnectionString("InternetShopDbContext") ??
+    throw new ArgumentNullException("InternetShopDbContext connection string is not configured");
+builder.Services.AddDbContext<UserDbContext>(options =>
+    options.UseNpgsql(pgConnectionString));
+
+// Регистрация сервисов
+builder.Services.AddScoped<ICatalogRepository, CatalogRepository>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IRedisCacheService, RedisCacheService>();
 builder.Services.AddScoped<ITokenService, JWTTokenService>();
-builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
+
+// Регистрация MediatR
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(
+        typeof(RegistrationCommandHandler).Assembly));
 
 
+// Валидаторы
 builder.Services.AddValidatorsFromAssemblyContaining<LoginQueryValidator>();
 
 builder.Services.AddControllers();
@@ -73,6 +132,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
+app.UseCors("AllowAll");
 app.UseAuthorization();
+app.UseStaticFiles();
 app.MapControllers();
+
 app.Run();

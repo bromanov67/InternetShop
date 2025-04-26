@@ -1,15 +1,11 @@
-﻿using FluentResults;
-using FluentValidation;
-using InternetShop.Application.User;
-using InternetShop.Application.User.CreateUser;
-using InternetShop.Application.User.GetAllUsers;
-using InternetShop.Application.User.Login;
-using InternetShop.Application.User.Registration;
+﻿using FluentValidation;
+using InternetShop.Application.BusinessLogic.User;
+using InternetShop.Application.BusinessLogic.User.GetAllUsers;
+using InternetShop.Application.BusinessLogic.User.Login;
+using InternetShop.Application.BusinessLogic.User.Registration;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace InternetShop.Controllers
 {
@@ -51,23 +47,10 @@ namespace InternetShop.Controllers
         {
             return await _mediator.Send(command, cancellationToken);
         }
-        [HttpPost]
-        public async Task<IActionResult> CreateUserAsync(CreateUserCommand command, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var user = await _mediator.Send(command, cancellationToken);
-                return Ok(user);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { errors = ex.ToString() });
-            }
-        }
 
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetAllAsync(GetAllUsersQuery query, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetAllAsync([FromQuery] GetAllUsersQuery query, CancellationToken cancellationToken)
         {
             try
             {
