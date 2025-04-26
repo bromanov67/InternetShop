@@ -4,7 +4,7 @@ namespace InternetShop.Domain
 {
     public class User : IdentityUser
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         
         public string Firstname { get; set; }
 
@@ -12,11 +12,6 @@ namespace InternetShop.Domain
 
         public string Email { get; set; }
 
-        //public string? RefreshToken { get; set; }
-        //public DateTime RefreshTokenExpiryTime { get; set; }
-
-
-        //perhabs to delete 
         public User() { }
 
         public User(string firstname, string lastname, string email)
