@@ -10,7 +10,7 @@ namespace InternetShop.Database.Tests
         public async Task GetByEmailAsync_ReturnsUser_WhenUserExists()
         {
             // Arrange
-            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            var options = new DbContextOptionsBuilder<UserDbContext>()
                 .UseInMemoryDatabase(databaseName: "TestDatabase")
                 .Options;
 
@@ -18,7 +18,7 @@ namespace InternetShop.Database.Tests
             {
                 context.Users.Add(new UserEntity
                 {
-                    Id = 1,
+                    Id = new Guid(),
                     Email = "test@example.com",
                     Firstname = "af",
                     Lastname = "af",
@@ -33,7 +33,7 @@ namespace InternetShop.Database.Tests
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal(1, result.Id);
+                Assert.Equal(new Guid(), result.Id);
                 Assert.Equal("test@example.com", result.Email);
                 Assert.Equal("af", result.Firstname);
                 Assert.Equal("af", result.Lastname);
@@ -45,7 +45,7 @@ namespace InternetShop.Database.Tests
         public async Task GetByEmailAsync_ReturnsNull_WhenUserDoesNotExist()
         {
             // Arrange
-            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            var options = new DbContextOptionsBuilder<UserDbContext>()
                 .UseInMemoryDatabase(databaseName: "TestDatabase")
                 .Options;
 

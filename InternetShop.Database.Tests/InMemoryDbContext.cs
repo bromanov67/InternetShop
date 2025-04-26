@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace InternetShop.Database.Tests
 {
-    public class InMemoryDbContext : ApplicationDbContext
+    public class InMemoryDbContext : UserDbContext
     {
-        public InMemoryDbContext(DbContextOptions<ApplicationDbContext> options)
+        public InMemoryDbContext(DbContextOptions<UserDbContext> options)
             : base(options)
         {
         }
