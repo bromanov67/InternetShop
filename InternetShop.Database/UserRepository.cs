@@ -1,5 +1,5 @@
 ﻿using FluentResults;
-using InternetShop.Application.User;
+using InternetShop.Application.BusinessLogic.User;
 using InternetShop.Database.Models;
 using InternetShop.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -9,9 +9,9 @@ namespace InternetShop.Database
 {
     public class UserRepository : IUserRepository
     {
-        private readonly ApplicationDbContext _dbContext;
+        private readonly UserDbContext _dbContext;
 
-        public UserRepository(ApplicationDbContext dbContext)
+        public UserRepository(UserDbContext dbContext)
         {
             _dbContext = dbContext;
         }

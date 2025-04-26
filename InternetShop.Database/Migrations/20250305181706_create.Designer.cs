@@ -11,31 +11,30 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace InternetShop.Database.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250206132636_userLogin")]
-    partial class userLogin
+    [DbContext(typeof(UserDbContext))]
+    [Migration("20250305181706_create")]
+    partial class create
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.1")
+                .HasAnnotation("ProductVersion", "9.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("InternetShop.Database.Models.UserEntity", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("Firstname")
                         .IsRequired()

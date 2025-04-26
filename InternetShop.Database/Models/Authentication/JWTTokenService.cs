@@ -1,15 +1,13 @@
-﻿using InternetShop.Application.User;
-using InternetShop.Database.Models;
+﻿using InternetShop.Application.BusinessLogic.User;
 using InternetShop.Domain;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
-namespace InternetShop.Database
+namespace InternetShop.Database.Models.Authentication
 {
     public class JWTTokenService : ITokenService
     {

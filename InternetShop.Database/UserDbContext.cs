@@ -7,9 +7,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InternetShop.Database
 {
-    public class ApplicationDbContext : IdentityDbContext<User> //swap from DbContext to Identity DbContext
+    public class UserDbContext : IdentityDbContext<User> 
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        public UserDbContext() { }
+        public UserDbContext(DbContextOptions<UserDbContext> options)
             : base(options)
         {
 
