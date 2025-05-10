@@ -51,12 +51,12 @@ namespace InternetShop.Web.Controllers
 
         [HttpPost("addProduct")]
         public async Task<IActionResult> AddProduct(
-        Guid cartId,
-        string productId,
-        string productName,
-        decimal price,
-        int quantity,
-        CancellationToken cancellationToken)
+            Guid cartId,
+            string productId,
+            string productName,
+            decimal price,
+            int quantity,
+            CancellationToken cancellationToken)
         {
             try
             {

@@ -9,8 +9,10 @@ namespace InternetShop.Database.Configurations
         public void Configure(EntityTypeBuilder<UserEntity> builder)
         {
             builder.HasKey(u => u.Id);
+            //builder.Property(u => u.Role).IsRequired();
             builder.Property(u => u.Email).IsRequired().HasMaxLength(256);
             builder.Property(u => u.PasswordHash).IsRequired();
         }
+
     }
 }

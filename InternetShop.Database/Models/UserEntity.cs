@@ -1,15 +1,15 @@
-﻿namespace InternetShop.Database.Models
+﻿using InternetShop.Domain;
+using Microsoft.AspNetCore.Identity;
+
+namespace InternetShop.Database.Models
 {
-    public class UserEntity
+    public class UserEntity : IdentityUser<Guid>
     {
         public Guid Id { get; set; }
-
-        public string Firstname { get; set; } = string.Empty;
-
-        public string Lastname { get; set; } = string.Empty;
-
-        public string Email { get; set; } = string.Empty;
-
-        public string PasswordHash { get; set; } = string.Empty;
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Email { get; set; }
+        public string PasswordHash { get; set; }
+        public RoleEnum Role { get; set; }
     }
 }
