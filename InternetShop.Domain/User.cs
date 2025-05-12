@@ -2,28 +2,18 @@
 
 namespace InternetShop.Domain
 {
-    public class User : IdentityUser
+    public class User
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         
-        public string Firstname { get; set; }
+        public string FirstName { get; set; }
 
-        public string Lastname { get; set; }
+        public string LastName { get; set; }
+
+        public RoleEnum Role { get; set; }
 
         public string Email { get; set; }
 
-        //public string? RefreshToken { get; set; }
-        //public DateTime RefreshTokenExpiryTime { get; set; }
-
-
-        //perhabs to delete 
-        public User() { }
-
-        public User(string firstname, string lastname, string email)
-        {
-            Firstname = firstname;
-            Lastname = lastname;
-            Email = email;
-        }
+        public string PasswordHash { get; set; }
     }
 }

@@ -1,21 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using InternetShop.Domain;
+using Microsoft.AspNetCore.Identity;
 
 namespace InternetShop.Database.Models
 {
-    public class UserEntity
+    public class UserEntity : IdentityUser<Guid>
     {
-        public int Id { get; set; }
-
-        public string Firstname { get; set; }
-
-        public string Lastname { get; set; }
-
+        public Guid Id { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
         public string Email { get; set; }
-
         public string PasswordHash { get; set; }
+        public RoleEnum Role { get; set; }
     }
 }
