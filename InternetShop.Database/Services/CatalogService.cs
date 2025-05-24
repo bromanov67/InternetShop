@@ -17,10 +17,6 @@ namespace InternetShop.Database.Services
             if (product.Price < 0)
                 throw new Exception("Price cannot be negative");
 
-            /*      // Валидация зависимостей
-                  if (!await _categoryService.ExistsAsync(product.Categor, cancellationToken))
-                      throw new Exception("Invalid category");*/
-
             // Работа с репозиторием
             await _repository.UpdateProductAsync(product, cancellationToken);
 

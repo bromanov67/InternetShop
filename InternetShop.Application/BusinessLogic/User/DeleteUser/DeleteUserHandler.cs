@@ -1,4 +1,5 @@
 ﻿using FluentResults;
+using InternetShop.Application.BusinessLogic.User.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 

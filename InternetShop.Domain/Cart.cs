@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace InternetShop.Domain
 {
-    public class Cart
+    public partial class Cart
     {
         [BsonId]
         public Guid Id { get; set; }
@@ -16,21 +16,6 @@ namespace InternetShop.Domain
 
         [BsonElement("Items")]
         public List<CartItem> Items { get; set; } = new();
-
-        public class CartItem
-        {
-            [BsonElement("ProductId")]
-            public string ProductId { get; set; } = null!;
-
-            [BsonElement("Quantity")]
-            public int Quantity { get; set; }
-
-            [BsonElement("ProductName")]
-            public string ProductName { get; set; } = null!;
-
-            [BsonElement("Price")]
-            public decimal Price { get; set; }
-        }
 
         // Parameterless constructor for MongoDB
         public Cart() { }

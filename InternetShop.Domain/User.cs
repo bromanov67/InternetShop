@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using InternetShop.Application.BusinessLogic.Order;
+using Microsoft.AspNetCore.Identity;
 
 namespace InternetShop.Domain
 {
@@ -15,5 +16,12 @@ namespace InternetShop.Domain
         public string Email { get; set; }
 
         public string PasswordHash { get; set; }
+
+        public Cart Cart { get; } = new();
+
+
+        private List<Order> _orders = new();
+
+        public IReadOnlyCollection<Order> Orders => _orders.AsReadOnly();
     }
 }

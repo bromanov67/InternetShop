@@ -21,25 +21,6 @@ public class CategoryService : ICategoryService
         _logger = logger;
     }
 
-/*    public async Task<bool> ExistsAsync(string categoryId, CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrEmpty(categoryId))
-            return false;
-
-        // Сначала проверяем кэш
-        var cacheKey = $"category:exists:{categoryId}";
-        var cached = await _cache.GetAsync<bool?>(cacheKey, cancellationToken);
-        if (cached.HasValue) return cached.Value;
-
-        // Если нет в кэше - проверяем в БД
-        var exists = await _collection.Find(c => c.Id == categoryId)
-            .AnyAsync(cancellationToken);
-
-        // Кэшируем результат на 10 минут
-        await _cache.SetAsync(cacheKey, exists, TimeSpan.FromMinutes(10), cancellationToken);
-        return exists;
-    }*/
-
     public async Task<Category> GetCategoryAsync(string categoryId, CancellationToken cancellationToken = default)
     {
         var cacheKey = $"category:{categoryId}";
@@ -134,7 +115,7 @@ public class CategoryService : ICategoryService
             .Limit(pagination.PageSize)
             .ToListAsync(cancellationToken);
 
-        var result = new PagedResult<Category>(items, total);
+        var result = new PagedResult<Category>(items, total, pagination.Page, pagination.PageSize);
 
         // Кэшируем на 5 минут
         await _cache.SetAsync(cacheKey, result, TimeSpan.FromMinutes(5), cancellationToken);

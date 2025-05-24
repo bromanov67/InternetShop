@@ -1,4 +1,4 @@
-﻿using InternetShop.Application.BusinessLogic.User;
+﻿using InternetShop.Application.BusinessLogic.User.Interfaces;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 

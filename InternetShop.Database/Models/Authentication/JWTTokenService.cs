@@ -1,4 +1,4 @@
-﻿using InternetShop.Application.BusinessLogic.User;
+﻿using InternetShop.Application.BusinessLogic.User.Interfaces;
 using InternetShop.Domain;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;

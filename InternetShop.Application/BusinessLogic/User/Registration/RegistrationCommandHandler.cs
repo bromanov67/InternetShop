@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using InternetShop.Application.BusinessLogic.User.Interfaces;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;

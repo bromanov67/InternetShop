@@ -1,4 +1,5 @@
 ﻿using FluentResults;
+using InternetShop.Application.BusinessLogic.User.Interfaces;
 using InternetShop.Domain;
 using MediatR;
 using Microsoft.Extensions.Logging;

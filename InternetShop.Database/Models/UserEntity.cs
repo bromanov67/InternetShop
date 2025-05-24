@@ -11,5 +11,6 @@ namespace InternetShop.Database.Models
         public string Email { get; set; }
         public string PasswordHash { get; set; }
         public RoleEnum Role { get; set; }
+        public ICollection<OrderEntity> Orders { get; set; } = new List<OrderEntity>();
     }
 }

@@ -2,6 +2,13 @@
 {
     public interface ICatalogRepository
     {
+        public Task<Dictionary<string, decimal>> GetProductPricesAsync(
+                    IEnumerable<string> productIds,
+                    CancellationToken cancellationToken);
+
+        Task<Dictionary<string, string>> GetProductNamesAsync(
+        IEnumerable<string> productIds,
+        CancellationToken cancellationToken);
         public Task<PagedResult<Domain.Product>> GetProductsAsync(ProductFilter filter, SortParams sort, PageParams pageParams, CancellationToken cancellationToken);
 
         public Task<Domain.Product> GetProductByIdAsync(string id, CancellationToken cancellationToken);

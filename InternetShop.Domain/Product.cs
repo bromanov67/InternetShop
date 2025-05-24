@@ -5,14 +5,6 @@ namespace InternetShop.Domain
 {
     public class Product
     {
-        public Product(string name, List<string> categories, Dictionary<string, string> categoryProperties, decimal price)
-        {
-            Name = name;
-            Categories = categories;
-            CategoryProperties = categoryProperties;
-            Price = price;
-        }
-
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; } = null!;
@@ -25,5 +17,13 @@ namespace InternetShop.Domain
         public List<string> Categories { get; set; }
 
         public Dictionary<string, string> CategoryProperties { get; set; }
+
+        public Product(string name, List<string> categories, Dictionary<string, string> categoryProperties, decimal price)
+        {
+            Name = name;
+            Categories = categories;
+            CategoryProperties = categoryProperties;
+            Price = price;
+        }
     }
 }

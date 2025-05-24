@@ -42,22 +42,50 @@ namespace InternetShop.Web.Controllers
         }
 
         [HttpGet("products")]
-        public async Task<IActionResult> GetAllProducts([FromQuery] ProductFilter filter,
-                                                        [FromQuery] SortParams sort,
-                                                        [FromQuery] PageParams pageParams,
-                                                        CancellationToken cancellationToken)
+        public async Task<IActionResult> GetAllProducts(
+            [FromQuery] ProductFilter filter = null,
+            [FromQuery] SortParams sort = null,
+            [FromQuery] PageParams pageParams = null,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                var query = new GetAllProductsQuery(filter, sort, pageParams);
-                var products = await _mediator.Send(query, cancellationToken);
+                // Initialize defaults with proper null checks
+                filter ??= new ProductFilter();
+                sort ??= new SortParams
+                {
+                    OrderBy = "Name",
+                    SortDirection = SortParams.SortDirectionEnum.Ascending
+                };
+                pageParams ??= new PageParams
+                {
+                    Page = 1,
+                    PageSize = 10
+                };
 
-                return Ok(products.Data);
+                // Validate parameters
+                if (string.IsNullOrWhiteSpace(sort.OrderBy))
+                {
+                    sort.OrderBy = "Name";
+                }
+
+                if (pageParams.Page < 1) pageParams.Page = 1;
+                if (pageParams.PageSize < 1 || pageParams.PageSize > 100) pageParams.PageSize = 10;
+
+                var query = new GetAllProductsQuery(filter, sort, pageParams);
+                var result = await _mediator.Send(query, cancellationToken);
+
+                return Ok(new
+                {
+                    result.Data,
+                    result.TotalCount,
+                    pageParams.Page,
+                    pageParams.PageSize
+                });
             }
             catch (Exception ex)
             {
-
-                return BadRequest(ex.Message);
+                return BadRequest(new { Error = ex.Message });
             }
         }
 

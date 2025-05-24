@@ -1,5 +1,7 @@
 ﻿using FluentResults;
+using InternetShop.Application.BusinessLogic.User.DTO;
 using InternetShop.Application.BusinessLogic.User.GetAllUsers;
+using InternetShop.Application.BusinessLogic.User.Interfaces;
 using InternetShop.Application.BusinessLogic.User.Registration;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

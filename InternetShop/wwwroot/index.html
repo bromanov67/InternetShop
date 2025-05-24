@@ -5,6 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Internet Shop</title>
     <style>
+        #updateStatusModal .modal-content {
+            max-width: 400px;
+        }
+
+        #updateStatusModal .form-group {
+            margin-bottom: 15px;
+        }
+
+        #updateStatusModal select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+
+        .order-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-created {
+            background-color: #ffeb3b;
+            color: #000;
+        }
+
+        .status-paid {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .status-shipped {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .status-cancelled {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .status-delivered {
+            background-color: #9C27B0;
+            color: white;
+        }
+
+        /* Модальное окно для заказов */
+        #orderModal .form-group {
+            margin-bottom: 15px;
+        }
+
+        #orderProductsList {
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -127,6 +185,28 @@
                 padding: 8px;
                 box-sizing: border-box;
             }
+
+        .product {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: white;
+        }
+
+        #products-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        #pagination {
+            margin: 20px 0;
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
@@ -193,12 +273,66 @@
 
             <!-- Область для отображения данных -->
             <div id="dataDisplay">
+                <div id="products-container"></div>
+                <div id="pagination"></div>
+
                 <table id="dataTable" class="hidden">
                     <thead>
                         <tr id="tableHeader"></tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
                 </table>
+            </div>
+
+            <!-- Новое модальное окно для создания заказов -->
+            <div id="orderModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" id="closeOrderModal">&times;</span>
+                    <h2>Create Order</h2>
+                    <form id="orderForm">
+                        <input type="hidden" id="orderId">
+                        <div class="form-group">
+                            <label>Client:</label>
+                            <select id="orderClientId" required></select>
+                            <label>Payment Type:</label>
+                            <select id="orderPaymentType" required>
+                                <option value="1">Credit Card</option>
+                                <option value="2">PayPal</option>
+                                <option value="3">Bank Transfer</option>
+                            </select>
+                        </div>
+                        <h3>Products</h3>
+                        <div id="orderProductsList">
+                            <p>No products added</p>
+                        </div>
+
+                        <button type="button" id="addProductBtn">Add Product</button>
+
+                        <div style="margin-top: 20px;">
+                            <h4>Total: $<span id="orderTotal">0.00</span></h4>
+                        </div>
+
+                        <button type="submit">Create Order</button>
+                        <div id="orderError" class="error"></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Модальное окно для добавления товаров -->
+            <div id="productSelectionModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" id="closeProductModal">&times;</span>
+                    <h2>Add Product to Order</h2>
+                    <div class="form-group">
+                        <label>Product:</label>
+                        <select id="productSelect"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity:</label>
+                        <input type="number" id="productQuantity" min="1" value="1">
+                    </div>
+                    <button type="button" id="confirmAddProduct">Add to Order</button>
+                </div>
             </div>
         </div>
 
@@ -240,11 +374,40 @@
                 </form>
             </div>
         </div>
+
+        <!-- Update status-->
+        <div id="updateStatusModal" class="modal">
+            <div class="modal-content">
+                <span class="close" id="closeStatusModal">&times;</span>
+                <h2>Update Order Status</h2>
+                <form id="updateStatusForm">
+                    <input type="hidden" id="statusOrderId">
+                    <div class="form-group">
+                        <label>New Status:</label>
+                        <select id="newStatusSelect" required>
+                            <option value="1">Created</option>
+                            <option value="2">Paid</option>
+                            <option value="3">Shipped</option>
+                            <option value="4">Delivered</option>
+                            <option value="5">Cancelled</option>
+                        </select>
+                    </div>
+                    <button type="submit">Update Status</button>
+                    <div id="statusError" class="error"></div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script>
         // Текущий пользователь
         let currentUser = null;
+        let products = [];
+        let clients = [];
+        let currentOrder = {
+            clientId: null,
+            products: []
+        };
 
         document.addEventListener('DOMContentLoaded', function () {
             checkAuthStatus();
@@ -259,6 +422,7 @@
         function setupEventListeners() {
             // Форма входа
             document.getElementById('loginForm').addEventListener('submit', async function (e) {
+                fetchClients
                 e.preventDefault();
                 const email = document.getElementById('loginEmail').value;
                 const password = document.getElementById('loginPassword').value;
@@ -293,7 +457,7 @@
                     lastname: document.getElementById('registerLastname').value,
                     email: document.getElementById('registerEmail').value,
                     password: document.getElementById('registerPassword').value,
-                    role: 2 // По умолчанию регистрируем как сотрудника
+                    role: 3 // По умолчанию регистрируем как клиента
                 };
 
                 try {
@@ -387,6 +551,83 @@
                     document.getElementById('userError').textContent = error.message;
                 }
             });
+
+            document.getElementById('closeStatusModal').addEventListener('click', () => {
+                document.getElementById('updateStatusModal').style.display = 'none';
+            });
+
+            document.getElementById('updateStatusForm').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                await updateOrderStatus();
+            });
+
+            window.showUpdateStatusModal = function (orderId, currentStatus) {
+                console.log('Opening modal for order:', orderId, 'current status:', currentStatus);
+                document.getElementById('statusOrderId').value = orderId;
+                document.getElementById('newStatusSelect').value = currentStatus;
+                document.getElementById('updateStatusModal').style.display = 'block';
+            };
+
+
+            async function updateOrderStatus() {
+                const orderId = document.getElementById('statusOrderId').value;
+                const newStatus = parseInt(document.getElementById('newStatusSelect').value);
+
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch(`https://localhost:7065/api/orders/${orderId}/status`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            OrderId: orderId,
+                            NewStatus: newStatus
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.message || 'Failed to update status');
+                    }
+
+                    alert('Order status updated successfully!');
+                    document.getElementById('updateStatusModal').style.display = 'none';
+                    fetchOrders(); // Обновляем список заказов
+                } catch (error) {
+                    document.getElementById('statusError').textContent = error.message;
+                    console.error('Error updating order status:', error);
+                }
+            }
+
+            document.getElementById('closeOrderModal').addEventListener('click', () => {
+                document.getElementById('orderModal').style.display = 'none';
+            });
+
+            document.getElementById('closeProductModal').addEventListener('click', () => {
+                document.getElementById('productSelectionModal').style.display = 'none';
+            });
+
+            document.getElementById('managerRegisterClientBtn').addEventListener('click', () => {
+                showClientForm();
+            });
+
+            // Закрытие при клике вне модального окна
+            window.addEventListener('click', (event) => {
+                if (event.target === document.getElementById('orderModal')) {
+                    document.getElementById('orderModal').style.display = 'none';
+                }
+                if (event.target === document.getElementById('productSelectionModal')) {
+                    document.getElementById('productSelectionModal').style.display = 'none';
+                }
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target === document.getElementById('updateStatusModal')) {
+                    document.getElementById('updateStatusModal').style.display = 'none';
+                }
+            });
         }
 
         // Функция для отображения ошибок
@@ -415,35 +656,407 @@
             const controlPanel = document.getElementById('controlPanel');
             controlPanel.innerHTML = '';
 
+            // Очищаем область данных при загрузке
+            document.getElementById('dataDisplay').innerHTML = `
+            <div id="products-container"></div>
+            <div id="pagination"></div>
+            <table id="dataTable" class="hidden">
+                <thead>
+                    <tr id="tableHeader"></tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        `;
+
             switch (role) {
                 case 0: // Admin
                     controlPanel.innerHTML = `
-                <button id="getAllUsersBtn">Manage Users</button>
-                <button id="getClientsBtn">Manage Clients</button>
-                <button id="registerUserBtn">Register New User</button>
-            `;
-
-                    document.getElementById('getAllUsersBtn').addEventListener('click', () => fetchAllUsers());
+                        <button id="getAllUsersBtn">Manage Users</button>
+                        <button id="getClientsBtn">Manage Clients</button>
+                        <button id="registerUserBtn">Register New User</button>
+                    `;
+                    document.getElementById('getAllUsersBtn').addEventListener('click', () => fetchAllUsers()); setupControlPanel
                     document.getElementById('getClientsBtn').addEventListener('click', () => fetchClients());
                     document.getElementById('registerUserBtn').addEventListener('click', () => showRegisterForm(true));
                     break;
 
                 case 1: // Manager
                     controlPanel.innerHTML = `
-                <button id="managerGetClientsBtn">View Clients</button>
-                <button id="managerRegisterClientBtn">Register Client</button>
-            `;
-
+                        <button id="managerGetClientsBtn">View Clients</button>
+                        <button id="managerRegisterClientBtn">Register Client</button>
+                        <button id="viewOrdersBtn">View Orders</button>
+                    `;
                     document.getElementById('managerGetClientsBtn').addEventListener('click', () => fetchClients());
                     document.getElementById('managerRegisterClientBtn').addEventListener('click', () => showRegisterForm(false));
+                    document.getElementById('viewOrdersBtn').addEventListener('click', () => fetchOrders());
                     break;
 
                 case 2: // Employee
                     controlPanel.innerHTML = `
-                <button id="employeeGetClientsBtn">View Client List</button>
-            `;
+                        <button id="employeeGetClientsBtn">View Client List</button>
+                        <button id="createOrderBtn">Create New Order</button>
+                    `;
                     document.getElementById('employeeGetClientsBtn').addEventListener('click', () => fetchClients());
+                    document.getElementById('createOrderBtn').addEventListener('click', () => showOrderForm());
                     break;
+            }
+        }
+
+        async function showOrderForm() {
+            try {
+                // Загружаем клиентов и товары, если еще не загружены
+                if (clients.length === 0) {
+                    await fetchClients();
+                }
+                if (products.length === 0) {
+                    await fetchProducts();
+                }
+
+                // Проверяем, что данные загружены
+                if (clients.length === 0) {
+                    throw new Error('No clients available');
+                }
+                if (products.length === 0) {
+                    throw new Error('No products available');
+                }
+
+                // Сбрасываем текущий заказ
+                currentOrder = {
+                    clientId: null,
+                    products: []
+                };
+
+                // Заполняем выпадающий список клиентов
+                const clientSelect = document.getElementById('orderClientId');
+                clientSelect.innerHTML = '';
+                clients.forEach(client => {
+                    const option = document.createElement('option');
+                    option.value = client.id;
+                    option.textContent = `${client.firstname} ${client.lastname}`;
+                    clientSelect.appendChild(option);
+                });
+
+                updateOrderProductsList();
+                document.getElementById('orderModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error showing order form:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+
+        document.getElementById('addProductBtn').addEventListener('click', function () {
+            showProductSelectionModal();
+        });
+
+        function showProductSelectionModal() {
+            const productSelect = document.getElementById('productSelect');
+            productSelect.innerHTML = '';
+
+            if (!products || products.length === 0) {
+                alert('No products available. Please load products first.');
+                return;
+            }
+
+            products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.name} ($${(product.price / 100).toFixed(2)})`;
+                productSelect.appendChild(option);
+            });
+
+            document.getElementById('productQuantity').value = 1;
+            document.getElementById('productSelectionModal').style.display = 'block';
+        }
+        document.getElementById('confirmAddProduct').addEventListener('click', function () {
+            const productId = document.getElementById('productSelect').value;
+            const quantity = parseInt(document.getElementById('productQuantity').value);
+
+            const product = products.find(p => p.id == productId);
+            if (!product) return;
+
+            // Проверяем, есть ли уже этот товар в заказе
+            const existingItem = currentOrder.products.find(item => item.productId == productId);
+            if (existingItem) {
+                existingItem.quantity += quantity;
+            } else {
+                currentOrder.products.push({
+                    productId: product.id,
+                    productName: product.name,
+                    price: product.price, // сохраняем цену в копейках/центах
+                    quantity: quantity
+                });
+            }
+
+            updateOrderProductsList();
+            document.getElementById('productSelectionModal').style.display = 'none';
+        });
+
+        function updateOrderProductsList() {
+            const container = document.getElementById('orderProductsList');
+            const totalElement = document.getElementById('orderTotal');
+
+            if (currentOrder.products.length === 0) {
+                container.innerHTML = '<p>No products added</p>';
+                totalElement.textContent = '0.00';
+                return;
+            }
+
+            let html = '<table style="width:100%"><tr><th>Product</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr>';
+            let total = 0;
+
+            currentOrder.products.forEach((item, index) => {
+                const itemTotal = (item.price / 100) * item.quantity;
+                total += itemTotal;
+
+                html += `
+            <tr>
+                <td>${item.productName}</td>
+                <td>$${(item.price / 100).toFixed(2)}</td>
+                <td>${item.quantity}</td>
+                <td>$${itemTotal.toFixed(2)}</td>
+                <td><button class="danger" onclick="removeOrderProduct(${index})">Remove</button></td>
+            </tr>
+        `;
+            });
+
+            html += '</table>';
+            container.innerHTML = html;
+            totalElement.textContent = total.toFixed(2);
+        }
+
+        window.removeOrderProduct = function (index) {
+            currentOrder.products.splice(index, 1);
+            updateOrderProductsList();
+        };
+
+        let isOrderSubmitting = false;
+
+        document.getElementById('orderForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            // Защита от двойной отправки
+            if (isOrderSubmitting) return;
+            isOrderSubmitting = true;
+
+            try {
+                const clientId = document.getElementById('orderClientId').value;
+                const paymentTypeId = parseInt(document.getElementById('orderPaymentType').value);
+
+                if (!clientId || currentOrder.products.length === 0) {
+                    document.getElementById('orderError').textContent = 'Please select a client and add at least one product';
+                    return;
+                }
+
+                const token = localStorage.getItem('token');
+                const response = await fetch('https://localhost:7065/api/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        UserId: clientId,
+                        PaymentTypeId: paymentTypeId,
+                        Items: currentOrder.products.map(p => ({
+                            ProductId: p.productId,
+                            Quantity: p.quantity
+                        }))
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to create order');
+                }
+
+                alert('Order created successfully!');
+                document.getElementById('orderModal').style.display = 'none';
+
+                // Очищаем данные
+                document.getElementById('dataDisplay').innerHTML = `
+            <div id="products-container"></div>
+            <div id="pagination"></div>
+            <table id="dataTable" class="hidden">
+                <thead>
+                    <tr id="tableHeader"></tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        `;
+
+            } catch (error) {
+                document.getElementById('orderError').textContent = error.message;
+                console.error('Error creating order:', error);
+            } finally {
+                isOrderSubmitting = false; // Сбрасываем флаг
+            }
+        });
+
+        async function fetchProducts(page = 1, pageSize = 10) {
+            try {
+                const response = await fetch(`/api/catalog/products?page=${page}&pageSize=${pageSize}`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const responseData = await response.json();
+
+                // Используем правильное поле Data (с заглавной буквы)
+                const productsArray = responseData.Data || [];
+
+                // Сохраняем продукты в глобальную переменную
+                products = productsArray.map(product => ({
+                    id: product.Id,
+                    name: product.Name,
+                    price: product.Price,
+                    description: product.Categories.join(', '),
+                    // Добавляем другие необходимые поля
+                    categories: product.Categories,
+                    properties: product.CategoryProperties
+                }));
+
+                // Clear previous products
+                const productsContainer = document.getElementById('products-container');
+                productsContainer.innerHTML = '';
+
+                // Render products
+                products.forEach(product => {
+                    const productElement = document.createElement('div');
+                    productElement.className = 'product';
+                    productElement.innerHTML = `
+                <h3>${product.name}</h3>
+                <p>Categories: ${product.description}</p>
+                <p>Price: $${(product.price / 100).toFixed(2)}</p>
+                <button onclick="addToCart('${product.id}')">Add to Cart</button>
+            `;
+                    productsContainer.appendChild(productElement);
+                });
+
+                // Render pagination
+                if (responseData.TotalCount) {
+                    renderPagination(responseData.TotalCount, pageSize, page);
+                }
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                alert('Failed to load products. Please try again.');
+            }
+        }
+
+        function renderPagination(totalCount, pageSize, currentPage) {
+            const totalPages = Math.ceil(totalCount / pageSize);
+            const paginationContainer = document.getElementById('pagination');
+            paginationContainer.innerHTML = '';
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.disabled = i === currentPage;
+                pageButton.onclick = () => fetchProducts(i, pageSize);
+                paginationContainer.appendChild(pageButton);
+            }
+        }
+
+        async function fetchOrders() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('Authentication required');
+                }
+
+                const response = await fetch('https://localhost:7065/api/orders', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Received orders data:', data); // Для отладки
+                displayOrders(data);
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+                showError('Failed to load orders', error);
+            }
+        }
+
+        function displayOrders(orders) {
+            const table = document.getElementById('dataTable');
+            const header = document.getElementById('tableHeader');
+            const body = document.getElementById('tableBody');
+
+            // Очищаем таблицу
+            header.innerHTML = '';
+            body.innerHTML = '';
+
+            // Устанавливаем заголовки
+            header.innerHTML = `
+        <th>ID</th>
+        <th>Client ID</th>
+        <th>Date</th>
+        <th>Status</th>
+        <th>Items Count</th>
+        <th>Actions</th>
+    `;
+
+            if (!orders || orders.length === 0) {
+                body.innerHTML = '<tr><td colspan="7">No orders found</td></tr>';
+                table.classList.remove('hidden');
+                return;
+            }
+
+            // Заполняем таблицу данными
+            orders.forEach(order => {
+                const row = document.createElement('tr');
+                const statusClass = getStatusClass(order.Status); // Обратите внимание на заглавную букву
+                const statusText = getStatusText(order.Status);
+                const date = new Date(order.CreatedAt).toLocaleDateString();
+                const itemsCount = order.Items?.length || 0;
+
+                row.innerHTML = `
+            <td>${order.Id}</td>
+            <td>${order.UserId}</td>
+            <td>${date}</td>
+            <td><span class="order-status ${getStatusClass(order.Status)}">${getStatusText(order.Status)}</span></td>
+            <td>${itemsCount}</td>
+            <td>
+                
+                ${currentUser.role <= 1 ? `<button onclick="showUpdateStatusModal('${order.Id}', ${order.Status})">Update Status</button>` : ''}
+            </td>
+        `;
+                body.appendChild(row);
+            });
+
+            table.classList.remove('hidden');
+        }
+
+        function getStatusClass(status) {
+            // Проверяем как число (на случай, если приходит строка)
+            status = typeof status === 'number' ? status : parseInt(status);
+
+            switch (status) {
+                case 1: return 'status-created';
+                case 2: return 'status-paid';
+                case 3: return 'status-shipped';
+                case 4: return 'status-delivered';
+                case 5: return 'status-cancelled';
+                default: return '';
+            }
+        }
+
+        function getStatusText(status) {
+            status = typeof status === 'number' ? status : parseInt(status);
+
+            switch (status) {
+                case 1: return 'Created';
+                case 2: return 'Paid';
+                case 3: return 'Shipped';
+                case 4: return 'Delivered';
+                case 5: return 'Cancelled';
+                default: return 'Unknown';
             }
         }
 
@@ -480,7 +1093,7 @@
             }
         }
 
-        function showRegisterForm(isAdmin = false) {
+        async function showRegisterForm(isAdmin = false) {
             const modal = document.getElementById('userModal');
             const form = document.getElementById('userForm');
 
@@ -493,7 +1106,7 @@
             // Очистка формы
             form.reset();
             document.getElementById('userId').value = '';
-            document.getElementById('userRoleSelect').value = isAdmin ? '2' : '3'; // По умолчанию Employee для админа, Client для менеджера
+            document.getElementById('userRoleSelect').value = isAdmin ? '2' : '3';
 
             // Показываем модальное окно
             modal.style.display = 'block';
@@ -501,37 +1114,48 @@
             // Обработчик отправки
             form.onsubmit = async (e) => {
                 e.preventDefault();
-
-                const userData = {
-                    firstname: document.getElementById('userFirstname').value,
-                    lastname: document.getElementById('userLastname').value,
-                    email: document.getElementById('userEmail').value,
-                    password: document.getElementById('userPassword').value,
-                    role: isAdmin ? parseInt(document.getElementById('userRoleSelect').value) : 3
-                };
-
-                try {
-                    const response = await fetch('https://localhost:7065/api/users/registration', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        },
-                        body: JSON.stringify(userData)
-                    });
-
-                    if (!response.ok) {
-                        const error = await response.json();
-                        throw new Error(error.message || 'Registration failed');
-                    }
-
-                    alert('User registered successfully!');
-                    modal.style.display = 'none';
-                    refreshData();
-                } catch (error) {
-                    document.getElementById('userError').textContent = error.message;
-                }
+                await submitRegistration(isAdmin);
             };
+        }
+
+        async function submitRegistration(isAdmin) {
+            const modal = document.getElementById('userModal');
+            const form = document.getElementById('userForm');
+            const errorElement = document.getElementById('userError');
+
+            errorElement.textContent = '';
+
+            const userData = {
+                firstname: document.getElementById('userFirstname').value,
+                lastname: document.getElementById('userLastname').value,
+                email: document.getElementById('userEmail').value,
+                password: document.getElementById('userPassword').value,
+                role: isAdmin ? parseInt(document.getElementById('userRoleSelect').value) : 3
+            };
+
+            try {
+                // Используем абсолютный URL без редиректов
+                const response = await fetch('https://localhost:7065/api/users/registration', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Registration failed');
+                }
+
+                alert('User registered successfully!');
+                modal.style.display = 'none';
+                refreshData();
+            } catch (error) {
+                errorElement.textContent = error.message;
+                console.error('Registration error:', error);
+            }
         }
 
         async function fetchAllUsers() {
@@ -597,13 +1221,7 @@
         async function fetchClients() {
             try {
                 const token = localStorage.getItem('token');
-                const url = new URL('https://localhost:7065/api/users/clients');
-
-                // Добавляем пагинацию, если нужно
-                url.searchParams.append('page', '1');
-                url.searchParams.append('pageSize', '20');
-
-                const response = await fetch(url, {
+                const response = await fetch('https://localhost:7065/api/users/clients', {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Accept': 'application/json'
@@ -614,18 +1232,70 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                const clients = await response.json();
+                const clientsData = await response.json();
 
-                // Проверяем структуру ответа
-                if (!Array.isArray(clients)) {
-                    throw new Error('Invalid response format: expected array');
+                // Нормализуем данные клиентов
+                clients = Array.isArray(clientsData) ? clientsData : clientsData.data || [];
+                clients = clients.map(client => ({
+                    id: client.id || client.Id,
+                    firstname: client.firstname || client.firstName || client.FirstName,
+                    lastname: client.lastname || client.lastName || client.LastName,
+                    email: client.email || client.Email
+                }));
+
+                // Если это вызов из формы заказа, просто сохраняем клиентов
+                if (document.getElementById('orderModal').style.display === 'block') {
+                    return;
                 }
 
-                displayData(clients, currentUser.role !== 2);
+                // Иначе отображаем таблицу клиентов
+                displayClients(clients);
             } catch (error) {
                 console.error('Error fetching clients:', error);
-                showError('Failed to load clients', error);
+                alert('Failed to load clients: ' + error.message);
             }
+        }
+
+        function displayClients(clients) {
+            const table = document.getElementById('dataTable');
+            const header = document.getElementById('tableHeader');
+            const body = document.getElementById('tableBody');
+
+            // Очищаем контейнер данных
+            document.getElementById('products-container').innerHTML = '';
+            document.getElementById('pagination').innerHTML = '';
+
+            header.innerHTML = `
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        ${currentUser.role <= 1 ? '<th>Actions</th>' : ''}
+    `;
+
+            body.innerHTML = '';
+
+            if (!clients || clients.length === 0) {
+                body.innerHTML = `<tr><td colspan="${currentUser.role <= 1 ? 4 : 3}">No clients found</td></tr>`;
+                table.classList.remove('hidden');
+                return;
+            }
+
+            clients.forEach(client => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+            <td>${client.id}</td>
+            <td>${client.firstname} ${client.lastname}</td>
+            <td>${client.email}</td>
+            ${currentUser.role <= 1 ? `
+            <td>
+                <button onclick="editClient('${client.id}')">Edit</button>
+                <button class="danger" onclick="deleteClient('${client.id}')">Delete</button>
+            </td>` : ''}
+        `;
+                body.appendChild(row);
+            });
+
+            table.classList.remove('hidden');
         }
 
         // Вспомогательная функция для конвертации роли
@@ -655,6 +1325,31 @@
 
             return roleMap[role] ?? -1; // -1 для неизвестной роли
         }
+
+        window.deleteClient = async function (clientId) {
+            if (!confirm('Are you sure you want to delete this client?')) return;
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`https://localhost:7065/api/users/delete/${clientId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to delete client');
+                }
+
+                alert('Client deleted successfully');
+                fetchClients();
+            } catch (error) {
+                console.error('Error deleting client:', error);
+                alert('Error: ' + error.message);
+            }
+        };
 
         async function parseResponse(response) {
             // Проверяем статус ответа
@@ -717,12 +1412,12 @@
 
             // Заголовки таблицы
             header.innerHTML = `
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                ${showActions ? '<th>Actions</th>' : ''}
-            `;
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    ${showActions ? '<th>Actions</th>' : ''}
+                `;
 
             if (!items || items.length === 0) {
                 const row = document.createElement('tr');
@@ -744,16 +1439,16 @@
                 const role = getRoleName(item.Role || item.role || item.userRole || item.roleName);
 
                 row.innerHTML = `
-                    <td>${id}</td>
-                    <td>${firstName} ${lastName}</td>
-                    <td>${email}</td>
-                    <td>${role}</td>
-                    ${showActions ? `
-                    <td>
-                        <button onclick="editItem('${id}', ${item.role || item.Role || 3})">Edit</button>
-                        <button class="danger" onclick="deleteItem('${id}')">Delete</button>
-                    </td>` : ''}
-                `;
+                        <td>${id}</td>
+                        <td>${firstName} ${lastName}</td>
+                        <td>${email}</td>
+                        <td>${role}</td>
+                        ${showActions ? `
+                        <td>
+                            <button onclick="editItem('${id}', ${item.role || item.Role || 3})">Edit</button>
+                            <button class="danger" onclick="deleteItem('${id}')">Delete</button>
+                        </td>` : ''}
+                    `;
                 tbody.appendChild(row);
             });
 
@@ -819,10 +1514,10 @@
             document.getElementById('passwordHelp').textContent = client ? 'Leave blank to keep current password' : '';
 
             if (client) {
-                document.getElementById('userId').value = client.id;
-                document.getElementById('userFirstname').value = client.firstname;
-                document.getElementById('userLastname').value = client.lastname;
-                document.getElementById('userEmail').value = client.email;
+                document.getElementById('userId').value = client.id || client.Id;
+                document.getElementById('userFirstname').value = client.firstname || client.firstName || client.FirstName || '';
+                document.getElementById('userLastname').value = client.lastname || client.lastName || client.LastName || '';
+                document.getElementById('userEmail').value = client.email || client.Email || '';
                 document.getElementById('userRoleSelect').value = '3';
             } else {
                 form.reset();

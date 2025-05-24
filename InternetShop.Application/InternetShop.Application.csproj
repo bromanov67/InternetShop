@@ -37,7 +37,6 @@
     <Folder Include="BusinessLogic\Cart\DeleteCart\" />
     <Folder Include="BusinessLogic\FactOfDelivery\" />
     <Folder Include="BusinessLogic\Favorites\" />
-    <Folder Include="BusinessLogic\Order\" />
     <Folder Include="BusinessLogic\Supplier\" />
   </ItemGroup>
 

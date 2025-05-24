@@ -1,10 +1,10 @@
 ﻿using FluentValidation;
-using InternetShop.Application.BusinessLogic;
 using InternetShop.Application.BusinessLogic.User;
 using InternetShop.Application.BusinessLogic.User.DeleteUser;
 using InternetShop.Application.BusinessLogic.User.GetAllUsers;
 using InternetShop.Application.BusinessLogic.User.GetClients;
 using InternetShop.Application.BusinessLogic.User.GetCurrentUser;
+using InternetShop.Application.BusinessLogic.User.Interfaces;
 using InternetShop.Application.BusinessLogic.User.Login;
 using InternetShop.Application.BusinessLogic.User.Registration;
 using InternetShop.Application.BusinessLogic.User.UpdateUser;
@@ -25,15 +25,15 @@ namespace InternetShop.Controllers
         private readonly IMediator _mediator;
         private readonly IValidator<LoginQuery> _loginValidator;
         private readonly IConfiguration _configuration;
-        private readonly IIdentityService _identityService;
+        //private readonly IIdentityRepository _identityRepository;
 
         public UserController(IMediator mediator, IValidator<LoginQuery> loginValidator,
-                              IConfiguration configuration, IIdentityService identityService)
+                              IConfiguration configuration /*IIdentityRepository identityRepository *//*, IIdentityService identityService*/)
         {
             _mediator = mediator;
             _loginValidator = loginValidator;
             _configuration = configuration;
-            _identityService = identityService;
+            //_identityRepository = identityRepository;
         }
 
         [HttpPost("login")]
@@ -66,7 +66,7 @@ namespace InternetShop.Controllers
         }
 
         [HttpPost("registration")]
-        [Authorize(Roles = "Admin,Manager")] // Только админы и руководители
+        //[Authorize(Roles = "Admin,Manager")] // Только админы и руководители
         public async Task<IActionResult> RegisterAsync(
             [FromBody] RegistrationCommand command,
             CancellationToken cancellationToken)

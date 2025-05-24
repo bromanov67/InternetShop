@@ -1,8 +1,9 @@
 ﻿using FluentResults;
-using InternetShop.Application.BusinessLogic;
-using InternetShop.Application.BusinessLogic.User;
+using InternetShop.Application.BusinessLogic.User.DTO;
 using InternetShop.Application.BusinessLogic.User.GetAllUsers;
+using InternetShop.Application.BusinessLogic.User.Interfaces;
 using InternetShop.Database.Models;
+using InternetShop.Database.Repositories;
 using InternetShop.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

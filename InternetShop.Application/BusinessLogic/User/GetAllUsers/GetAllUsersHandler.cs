@@ -1,4 +1,6 @@
-﻿using MediatR;
+﻿using InternetShop.Application.BusinessLogic.User.DTO;
+using InternetShop.Application.BusinessLogic.User.Interfaces;
+using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace InternetShop.Application.BusinessLogic.User.GetAllUsers

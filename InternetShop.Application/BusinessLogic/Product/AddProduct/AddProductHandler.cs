@@ -18,16 +18,6 @@ namespace InternetShop.Application.BusinessLogic.Product.AddProduct
         {
             try
             {
-                //var categoryExists = await _redisCategoryService.CategoryExistsAsync(
-                //    command.CategoryType,
-                //    command.CategoryKey
-                //);
-
-                //if (!categoryExists)
-                //{
-                //    return Result.Fail<string>("Категория не существует");
-                //}
-
                 var product = new Domain.Product(command.Name, command.Categories, command.categoryProperties, command.Price);
                 await _catalogRepository.CreateProductAsync(product, cancellationToken);
                 return Result.Ok(product.Id);

@@ -2,7 +2,6 @@
 {
     public interface ICategoryService
     {
-        //Task<bool> ExistsAsync(string categoryId, CancellationToken cancellationToken = default);
         Task<Domain.Category> GetCategoryAsync(string categoryId, CancellationToken cancellationToken = default);
         Task<string> CreateCategoryAsync(Domain.Category category, CancellationToken cancellationToken = default);
         Task UpdateCategoryAsync(Domain.Category category, CancellationToken cancellationToken = default);
